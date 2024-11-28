@@ -71,7 +71,7 @@ show_error_codes = true
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
-modules = ["src"]
+modules = ["src", "tests"]
 disable_error_code = ["call-overload"]
 
 
@@ -84,29 +84,3 @@ dev-dependencies = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D"] # Ignore docstring for tests.
-
-[tool.ruff.lint.isort]
-known-local-folder = ["scripts"]
-
-[tool.pylint]
-ignore = "tests"
-
-[tool.pylint.messages_control]
-
-max-line-length = 100
-
-disable = [
-    "missing-module-docstring",
-    "too-few-public-methods", # to mimic dataclasses with numba jitclasses.
-    "no-member", # for numba jitclasses.
-    "line-too-long", # already checked by ruff.
-    "too-many-positional-arguments",
-    "fixme", # Allow TODO comments
-    "unnecessary-comprehension", # Necessary for summing numba dictionaries values.
-    "consider-using-generator", # Generators do not behave well with numba.
-    "line-too-long", # ruff may reformat to lines above 100 characters, since it's not a hard limit there.
-]
-
-[tool.pylint.design]
-max-attributes = 12
-max-args = 12
