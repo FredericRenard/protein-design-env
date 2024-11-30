@@ -65,14 +65,14 @@ class Environment(gym.Env):
         """Adds an amino acid, compute the reward and the termination condition."""
         self.state.append(AminoAcids(action).value)
 
-        reward = self.get_reward()
+        reward = self._get_reward()
         terminated = truncated = len(self.state) >= self.sequence_length
         obs = self._get_observation()
         return obs, reward, terminated, truncated, {}
 
     def _get_observation(self) -> NDArray:
         """Returns the observation of the current state."""
-        charge = self.get_charge()
+        charge = self._get_charge()
         flattened_obs = np.hstack(
             [self._pad_state(), len(self.state), self.motif, self.sequence_length, charge]
         )
@@ -105,11 +105,11 @@ class Environment(gym.Env):
             ).item()
         return self.sequence_length  # type: ignore[no-any-return]
 
-    def get_charge(self) -> int:
+    def _get_charge(self) -> int:
         """Compute the charge of a sequence."""
         return sum(amino_acid_to_charges_dict[amino_acid] for amino_acid in self.state)
 
-    def get_reward(self) -> int:
+    def _get_reward(self) -> int:
         """Compute the reward of a sequence."""
         if len(self.state) >= len(self.motif):
             potential_motif_matches = np.lib.stride_tricks.sliding_window_view(
@@ -120,7 +120,7 @@ class Environment(gym.Env):
         else:
             n_motifs = 0
 
-        charge_penalty = -10 if self.get_charge() != 0 else 0
+        charge_penalty = -10 if self._get_charge() != 0 else 0
 
         reward: int = charge_penalty + REWARD_PER_MOTIF * n_motifs
         return reward

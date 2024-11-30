@@ -114,18 +114,18 @@ class TestEnvironment:
 
     def test_get_charge(self) -> None:
         self.env.state = []
-        assert self.env.get_charge() == 0
+        assert self.env._get_charge() == 0
 
         self.env.state.append(AminoAcids.GLUTAMIC_ACID)
-        assert self.env.get_charge() == -1
+        assert self.env._get_charge() == -1
 
         self.env.state.append(AminoAcids.LYSINE)
-        assert self.env.get_charge() == 0
+        assert self.env._get_charge() == 0
 
     def test_get_reward(self) -> None:
         # The default motif has three positive charges.
         self.env.state = DEFAULT_MOTIF.copy()
-        assert self.env.get_reward() == REWARD_PER_MOTIF + CHARGE_PENALTY
+        assert self.env._get_reward() == REWARD_PER_MOTIF + CHARGE_PENALTY
 
         # Make the sequence is now neutral in charge.
         self.env.state.extend(
@@ -136,11 +136,11 @@ class TestEnvironment:
             ]
         )
 
-        assert self.env.get_reward() == REWARD_PER_MOTIF
+        assert self.env._get_reward() == REWARD_PER_MOTIF
 
         # Add another motif while staying neutral in charge.
         self.env.state.extend(self.env.state)
-        assert self.env.get_reward() == 2 * REWARD_PER_MOTIF
+        assert self.env._get_reward() == 2 * REWARD_PER_MOTIF
 
     def test_generate_sequence(self) -> None:
         assert self.env._generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH
@@ -174,7 +174,7 @@ class TestEnvironment:
 
     def test_get_observation(self) -> None:
         self.env.state = [5, 7, 1, 8]
-        charge = self.env.get_charge()
+        charge = self.env._get_charge()
 
         np.testing.assert_array_equal(
             self.env._get_observation(),
