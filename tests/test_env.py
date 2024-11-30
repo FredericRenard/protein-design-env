@@ -143,29 +143,33 @@ class TestEnvironment:
         assert self.env.get_reward() == 2 * REWARD_PER_MOTIF
 
     def test_generate_sequence(self) -> None:
-        assert self.env.generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH
+        assert self.env._generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH
 
         self.env.change_sequence_length_at_each_episode = True
 
         for _ in range(20):
-            assert MIN_SEQUENCE_LENGTH <= self.env.generate_sequence_length() <= MAX_SEQUENCE_LENGTH
+            assert (
+                MIN_SEQUENCE_LENGTH <= self.env._generate_sequence_length() <= MAX_SEQUENCE_LENGTH
+            )
 
     def test_generate_motif(self) -> None:
-        np.testing.assert_array_equal(self.env.generate_motif(), DEFAULT_MOTIF)
+        np.testing.assert_array_equal(self.env._generate_motif(), DEFAULT_MOTIF)
 
         self.env.change_motif_at_each_episode = True
 
         for _ in range(20):
-            motif = self.env.generate_motif()
+            motif = self.env._generate_motif()
             self._assert_motif_is_correct(motif)
 
     def test_pad_state(self) -> None:
         self.env.state = []
-        np.testing.assert_array_equal(self.env.pad_state(), [0 for _ in range(MAX_SEQUENCE_LENGTH)])
+        np.testing.assert_array_equal(
+            self.env._pad_state(), [0 for _ in range(MAX_SEQUENCE_LENGTH)]
+        )
 
         self.env.state = [5, 7, 1, 8]
         np.testing.assert_array_equal(
-            self.env.pad_state(), [5, 7, 1, 8] + [0 for _ in range(MAX_SEQUENCE_LENGTH - 4)]
+            self.env._pad_state(), [5, 7, 1, 8] + [0 for _ in range(MAX_SEQUENCE_LENGTH - 4)]
         )
 
     def test_get_observation(self) -> None:
@@ -173,8 +177,8 @@ class TestEnvironment:
         charge = self.env.get_charge()
 
         np.testing.assert_array_equal(
-            self.env.get_observation(),
-            np.hstack([self.env.pad_state(), 4, self.env.motif, self.env.sequence_length, charge]),
+            self.env._get_observation(),
+            np.hstack([self.env._pad_state(), 4, self.env.motif, self.env.sequence_length, charge]),
         )
 
     def _assert_motif_is_correct(self, motif: list[int]) -> None:

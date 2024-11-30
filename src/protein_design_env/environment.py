@@ -53,10 +53,10 @@ class Environment(gym.Env):
         options: dict[str, Any] | None = None,
     ) -> tuple[ObsType, dict[str, Any]]:
         """Resets the environment."""
-        self.motif = self.generate_motif()
-        self.sequence_length = self.generate_sequence_length()
+        self.motif = self._generate_motif()
+        self.sequence_length = self._generate_sequence_length()
         self.state: list[int] = []
-        obs = self.get_observation()
+        obs = self._get_observation()
         return obs, {}
 
     def step(self, action: int) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
@@ -65,23 +65,23 @@ class Environment(gym.Env):
 
         reward = self.get_reward()
         terminated = truncated = len(self.state) >= self.sequence_length
-        obs = self.get_observation()
+        obs = self._get_observation()
         return obs, reward, terminated, truncated, {}
 
-    def get_observation(self) -> NDArray:
+    def _get_observation(self) -> NDArray:
         """Returns the observation of the current state."""
         charge = self.get_charge()
         flattened_obs = np.hstack(
-            [self.pad_state(), len(self.state), self.motif, self.sequence_length, charge]
+            [self._pad_state(), len(self.state), self.motif, self.sequence_length, charge]
         )
         return flattened_obs
 
-    def pad_state(self) -> NDArray:
+    def _pad_state(self) -> NDArray:
         """Return the padded state with zeros if no amino acids are present."""
         n_zeros_to_add = MAX_SEQUENCE_LENGTH - len(self.state)
         return np.hstack([self.state, np.zeros(n_zeros_to_add)]).astype(np.int64)
 
-    def generate_motif(self) -> list[int]:
+    def _generate_motif(self) -> list[int]:
         """Generate a random motif of amino acids and update the observation space.
 
         The motif length is between MIN_MOTIF_LENGTH and MAX_MOTIF_LENGTH.
@@ -95,7 +95,7 @@ class Environment(gym.Env):
             )
         return self.motif  # type: ignore[no-any-return]
 
-    def generate_sequence_length(self) -> int:
+    def _generate_sequence_length(self) -> int:
         """Generate a random sequence length and update the observation space."""
         if self.change_sequence_length_at_each_episode:
             self.sequence_length = self.rng.integers(
