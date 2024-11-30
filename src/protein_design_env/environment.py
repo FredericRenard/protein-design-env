@@ -21,6 +21,8 @@ from protein_design_env.constants import (
 class Environment(gym.Env):
     """This class encapsulates all the logic of the protein design environment.
 
+    The goal of the agent is to design amino acids sequences of neutral charge containing patterns.
+
     The initial state of the environment is: [].
     The actions are adding an amino acid.
     The reward is -10 if the charge is not neutral and +5 per motif presents in the sequence.
