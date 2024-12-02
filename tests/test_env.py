@@ -175,13 +175,48 @@ class TestEnvironment:
     def test_get_observation(self) -> None:
         self.env.state = [5, 7, 1, 8]
         charge = self.env._get_charge()
-
+        obs = self.env._get_observation()
         np.testing.assert_array_equal(
-            self.env._get_observation(),
-            np.hstack([self.env._pad_state(), 4, self.env.motif, self.env.sequence_length, charge]),
+            obs,
+            np.hstack(
+                [self.env._pad_state(), 4, self.env._pad_motif(), self.env.sequence_length, charge]
+            ),
         )
+        assert obs in self.env.observation_space
+
+    @pytest.mark.parametrize("change_motif_at_each_episode", [True, False])
+    @pytest.mark.parametrize("change_sequence_length_at_each_episode", [True, False])
+    def test_get_observation__empty_state(
+        self, change_motif_at_each_episode: bool, change_sequence_length_at_each_episode: bool
+    ) -> None:
+        self.env.change_motif_at_each_episode = change_motif_at_each_episode
+        self.env.change_sequence_length_at_each_episode = change_sequence_length_at_each_episode
+
+        self.env.state = []
+        obs = self.env._get_observation()
+        np.testing.assert_array_equal(
+            obs,
+            np.hstack(
+                [self.env._pad_state(), 0, self.env._pad_motif(), self.env.sequence_length, 0]
+            ),
+        )
+        assert obs in self.env.observation_space
 
     def _assert_motif_is_correct(self, motif: list[int]) -> None:
         assert np.all(np.asarray(motif) >= 1)
         assert np.all(np.asarray(motif) <= NUM_AMINO_ACIDS)
         assert MIN_MOTIF_LENGTH <= len(motif) <= MAX_MOTIF_LENGTH
+
+    @pytest.mark.parametrize(
+        ("motif", "expected_padded_motif"),
+        [
+            ([1, 2, 3], [1, 2, 3, 0]),
+            ([], [0, 0, 0, 0]),
+        ],
+    )
+    def test_pad_motif_valid(self, motif: list[int], expected_padded_motif: list[int]) -> None:
+        """Test valid cases for _pad_motif."""
+        self.env.motif = motif
+        padded_motif = self.env._pad_motif()
+        assert padded_motif.tolist() == expected_padded_motif
+        assert len(padded_motif) == MAX_MOTIF_LENGTH
