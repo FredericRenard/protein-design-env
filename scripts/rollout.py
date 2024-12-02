@@ -1,3 +1,8 @@
+"""This script demonstrates a simple rollout of the "Protein-Design-v0" Gymnasium environment.
+
+The script initializes the environment, resets it, and performs a loop of random actions
+until the episode terminates. It then prints the terminal state and the final reward.
+"""
 import gymnasium as gym
 from protein_design_env.amino_acids import AminoAcids
 from protein_design_env.environment import Environment
