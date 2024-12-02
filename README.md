@@ -51,4 +51,4 @@ cd protein-design-env
 - Activate virtual environment: ```source .venv/bin/activate```
 - Install all requirements: ```uv sync```
 - Install the protein-design-env package: ```pip install -e .```
-- Launch the rollout script: ```uv run python -m scripts/rollout.py```
+- Launch the rollout script: ```uv run python scripts/rollout.py```
