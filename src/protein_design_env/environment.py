@@ -1,11 +1,10 @@
-from typing import Any, SupportsFloat
+from typing import Any
 
 import gymnasium as gym
 import numpy as np
-from gymnasium.core import ObsType
 from numpy._typing import NDArray
 
-from protein_design_env.amino_acids import AminoAcids, amino_acid_to_charges_dict
+from protein_design_env.amino_acids import AMINO_ACIDS_TO_CHARGES_DICT, AminoAcids
 from protein_design_env.constants import (
     AMINO_ACIDS_VALUES,
     DEFAULT_MOTIF,
@@ -24,13 +23,14 @@ class Environment(gym.Env):
     The goal of the agent is to design amino acids sequences of neutral charge containing patterns.
 
     The initial state of the environment is: [].
-    The actions are adding an amino acid.
-    The reward is -10 if the charge is not neutral and +5 per motif presents in the sequence.
-    The target motif to be present in the sequence is either RKR is the flag
+    The actions are adding an amino acid to the sequence.
+    The reward is CHARGE_PENALTY if the charge is not neutral and REWARD_PER_MOTIF per motif
+    present in the sequence.
+    The target motif to be present in the sequence is either RKR if the flag
     "change_motif_at_each_episode" is False or a random motif of length 3.
     The length of the episode is either 15 if the flag
-    "change_sequence_length_at_each_episode" if False
-    or a random number between 10 and 20 otherwise.
+    "change_sequence_length_at_each_episode" if False or a random number between 10 and 20
+    otherwise.
     """
 
     def __init__(
@@ -53,7 +53,7 @@ class Environment(gym.Env):
         *,
         seed: int | None = None,
         options: dict[str, Any] | None = None,
-    ) -> tuple[ObsType, dict[str, Any]]:
+    ) -> tuple[NDArray, dict[str, Any]]:
         """Resets the environment."""
         self.motif = self._generate_motif()
         self.sequence_length = self._generate_sequence_length()
@@ -61,7 +61,7 @@ class Environment(gym.Env):
         obs = self._get_observation()
         return obs, {}
 
-    def step(self, action: int) -> tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+    def step(self, action: int) -> tuple[NDArray, float, bool, bool, dict[str, Any]]:
         """Adds an amino acid, compute the reward and the termination condition."""
         self.state.append(AminoAcids(action).value)
 
@@ -78,10 +78,25 @@ class Environment(gym.Env):
         )
         return flattened_obs
 
-    def _pad_state(self) -> NDArray:
-        """Return the padded state with zeros if no amino acids are present."""
-        n_zeros_to_add = MAX_SEQUENCE_LENGTH - len(self.state)
-        return np.hstack([self.state, np.zeros(n_zeros_to_add)]).astype(np.int64)
+    def _get_reward(self) -> int:
+        """Compute the reward of a sequence."""
+        if len(self.state) >= len(self.motif):
+            potential_motif_matches = np.lib.stride_tricks.sliding_window_view(
+                self.state, len(self.motif)
+            )
+            n_motifs = np.sum(np.all(potential_motif_matches == self.motif, axis=1))
+
+        else:
+            n_motifs = 0
+
+        charge_penalty = -10 if self._get_charge() != 0 else 0
+
+        reward: int = charge_penalty + REWARD_PER_MOTIF * n_motifs
+        return reward
+
+    def _get_charge(self) -> int:
+        """Compute the charge of a sequence."""
+        return sum(AMINO_ACIDS_TO_CHARGES_DICT[amino_acid] for amino_acid in self.state)
 
     def _generate_motif(self) -> list[int]:
         """Generate a random motif of amino acids and update the observation space.
@@ -105,22 +120,7 @@ class Environment(gym.Env):
             ).item()
         return self.sequence_length  # type: ignore[no-any-return]
 
-    def _get_charge(self) -> int:
-        """Compute the charge of a sequence."""
-        return sum(amino_acid_to_charges_dict[amino_acid] for amino_acid in self.state)
-
-    def _get_reward(self) -> int:
-        """Compute the reward of a sequence."""
-        if len(self.state) >= len(self.motif):
-            potential_motif_matches = np.lib.stride_tricks.sliding_window_view(
-                self.state, len(self.motif)
-            )
-            n_motifs = np.sum(np.all(potential_motif_matches == self.motif, axis=1))
-
-        else:
-            n_motifs = 0
-
-        charge_penalty = -10 if self._get_charge() != 0 else 0
-
-        reward: int = charge_penalty + REWARD_PER_MOTIF * n_motifs
-        return reward
+    def _pad_state(self) -> NDArray:
+        """Return the padded state with zeros if no amino acids are present."""
+        n_zeros_to_add = MAX_SEQUENCE_LENGTH - len(self.state)
+        return np.hstack([self.state, np.zeros(n_zeros_to_add)]).astype(np.int64)

@@ -26,7 +26,7 @@ class AminoAcids(IntEnum):
     VALINE = 20
 
 
-amino_acid_to_charges_dict = {
+AMINO_ACIDS_TO_CHARGES_DICT = {
     AminoAcids.ALANINE.value: 0,  # Neutral
     AminoAcids.ARGININE.value: +1,  # Positive
     AminoAcids.ASPARAGINE.value: 0,  # Neutral
