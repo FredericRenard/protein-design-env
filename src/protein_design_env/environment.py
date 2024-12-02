@@ -13,6 +13,7 @@ from protein_design_env.constants import (
     MAX_SEQUENCE_LENGTH,
     MIN_MOTIF_LENGTH,
     MIN_SEQUENCE_LENGTH,
+    NUM_AMINO_ACIDS,
     REWARD_PER_MOTIF,
 )
 
@@ -48,6 +49,22 @@ class Environment(gym.Env):
         self.motif = DEFAULT_MOTIF
         self.sequence_length = DEFAULT_SEQUENCE_LENGTH
 
+        self.state: list[int] = []
+        self.action_space = gym.spaces.Box(low=1, high=NUM_AMINO_ACIDS, shape=(), dtype=int)
+        highest_value_possible_in_obs = max(MAX_SEQUENCE_LENGTH, MAX_MOTIF_LENGTH, NUM_AMINO_ACIDS)
+        self.observation_space = gym.spaces.Box(
+            low=-highest_value_possible_in_obs,
+            high=highest_value_possible_in_obs,
+            shape=(
+                MAX_SEQUENCE_LENGTH  # padded state.
+                + 1  # sequence length.
+                + MAX_MOTIF_LENGTH  # padded motif.
+                + 1  # target sequence length.
+                + 1,  # charge
+            ),
+            dtype=int,
+        )
+
     def reset(
         self,
         *,
@@ -55,9 +72,11 @@ class Environment(gym.Env):
         options: dict[str, Any] | None = None,
     ) -> tuple[NDArray, dict[str, Any]]:
         """Resets the environment."""
+        super().reset(seed=seed, options=options)
+
         self.motif = self._generate_motif()
         self.sequence_length = self._generate_sequence_length()
-        self.state: list[int] = []
+        self.state.clear()
         obs = self._get_observation()
         return obs, {}
 
@@ -74,7 +93,7 @@ class Environment(gym.Env):
         """Returns the observation of the current state."""
         charge = self._get_charge()
         flattened_obs = np.hstack(
-            [self._pad_state(), len(self.state), self.motif, self.sequence_length, charge]
+            [self._pad_state(), len(self.state), self._pad_motif(), self.sequence_length, charge]
         )
         return flattened_obs
 
@@ -124,3 +143,8 @@ class Environment(gym.Env):
         """Return the padded state with zeros if no amino acids are present."""
         n_zeros_to_add = MAX_SEQUENCE_LENGTH - len(self.state)
         return np.hstack([self.state, np.zeros(n_zeros_to_add)]).astype(np.int64)
+
+    def _pad_motif(self) -> NDArray:
+        """Return the padded motif with zeros if no amino acids are present."""
+        n_zeros_to_add = MAX_MOTIF_LENGTH - len(self.motif)
+        return np.hstack([self.motif, np.zeros(n_zeros_to_add)]).astype(np.int64)
