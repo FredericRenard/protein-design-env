@@ -33,7 +33,7 @@ class TestEnvironment:
                 [1],
                 [0 for _ in range(MAX_SEQUENCE_LENGTH - 1)],
                 1,
-                self.env.motif,
+                self.env._pad_motif(),
                 self.env.sequence_length,
                 0,
             ]
@@ -52,7 +52,7 @@ class TestEnvironment:
                 [1, 2],
                 [0 for _ in range(MAX_SEQUENCE_LENGTH - 2)],
                 2,
-                self.env.motif,
+                self.env._pad_motif(),
                 self.env.sequence_length,
                 +1,
             ]
@@ -71,7 +71,7 @@ class TestEnvironment:
                 [1, 2, 5],
                 [0 for _ in range(MAX_SEQUENCE_LENGTH - 3)],
                 3,
-                self.env.motif,
+                self.env._pad_motif(),
                 self.env.sequence_length,
                 +1,
             ]
@@ -105,7 +105,7 @@ class TestEnvironment:
             [
                 [0 for _ in range(MAX_SEQUENCE_LENGTH)],
                 0,
-                self.env.motif,
+                self.env._pad_motif(),
                 self.env.sequence_length,
                 0,
             ]
