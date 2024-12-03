@@ -14,7 +14,7 @@ In this environment, the agent acts by sequentially building a protein sequence.
     - Alternatively, a random motif of length between 2 and 4 is generated for each episode.
 - **Flexible Sequence Lengths**:
     - Sequence lengths can be fixed at 15.
-    - The lengths can vary randomly between 10 and 20 for each episode.
+    - The lengths can vary randomly between 15 and 25 for each episode.
 - **Reward Structure**:
     - **Motif Rewards**: Bonus for each occurrence of the target motif in the sequence.
     - **Charge Penalty**: Penalty if the sequence is not neutral.

@@ -30,7 +30,7 @@ class Environment(gym.Env):
     The target motif to be present in the sequence is either ARGININE, LYSINE, ARGININE if the flag
     "change_motif_at_each_episode" is False or a random motif of length 3.
     The length of the episode is either 15 if the flag
-    "change_sequence_length_at_each_episode" if False or a random number between 10 and 20
+    "change_sequence_length_at_each_episode" is False or a random number between 15 and 25
     otherwise.
     """
 
