@@ -58,7 +58,7 @@ class TestEnvironment:
             ]
         )
         np.testing.assert_array_equal(obs, expected_obs)
-        assert reward == CHARGE_PENALTY
+        assert reward == CHARGE_PENALTY + 2 / 3
         assert not terminated
         assert not truncated
 
@@ -77,7 +77,7 @@ class TestEnvironment:
             ]
         )
         np.testing.assert_array_equal(obs, expected_obs)
-        assert reward == CHARGE_PENALTY
+        assert reward == CHARGE_PENALTY + 2 / 3
         assert terminated
         assert truncated
 
@@ -140,7 +140,7 @@ class TestEnvironment:
 
         # Add another motif while staying neutral in charge.
         self.env.state.extend(self.env.state)
-        assert self.env._get_reward() == 2 * REWARD_PER_MOTIF
+        assert self.env._get_reward() == REWARD_PER_MOTIF
 
     def test_generate_sequence(self) -> None:
         assert self.env._generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH

@@ -16,6 +16,7 @@ from protein_design_env.constants import (
     NUM_AMINO_ACIDS,
     REWARD_PER_MOTIF,
 )
+from src.protein_design_env.constants import CHARGE_PENALTY
 
 
 class Environment(gym.Env):
@@ -50,7 +51,7 @@ class Environment(gym.Env):
         self.sequence_length = DEFAULT_SEQUENCE_LENGTH
 
         self.state: list[int] = []
-        self.action_space = gym.spaces.Box(low=1, high=NUM_AMINO_ACIDS, shape=(), dtype=int)
+        self.action_space = gym.spaces.Discrete(start=1, n=NUM_AMINO_ACIDS)
         highest_value_possible_in_obs = max(MAX_SEQUENCE_LENGTH, MAX_MOTIF_LENGTH, NUM_AMINO_ACIDS)
         self.observation_space = gym.spaces.Box(
             low=-highest_value_possible_in_obs,
@@ -62,7 +63,7 @@ class Environment(gym.Env):
                 + 1  # target sequence length.
                 + 1,  # charge
             ),
-            dtype=int,
+            dtype=float,
         )
 
     def reset(
@@ -94,23 +95,22 @@ class Environment(gym.Env):
         charge = self._get_charge()
         flattened_obs = np.hstack(
             [self._pad_state(), len(self.state), self._pad_motif(), self.sequence_length, charge]
-        )
+        ).astype(np.float64)
         return flattened_obs
 
     def _get_reward(self) -> int:
         """Compute the reward of a sequence."""
-        if len(self.state) >= len(self.motif):
-            potential_motif_matches = np.lib.stride_tricks.sliding_window_view(
-                self.state, len(self.motif)
-            )
-            n_motifs = np.sum(np.all(potential_motif_matches == self.motif, axis=1))
-
+        motif_coeff = 0.0
+        if self.motif in self.state:
+            motif_coeff = 1.0
         else:
-            n_motifs = 0
+            for amino_acid_id in self.motif:
+                if amino_acid_id in self.state and AMINO_ACIDS_TO_CHARGES_DICT[amino_acid_id] != 0:
+                    motif_coeff += 1 / len(self.motif)
 
-        charge_penalty = -10 if self._get_charge() != 0 else 0
+        charge_penalty = CHARGE_PENALTY if self._get_charge() != 0 else 0
 
-        reward: int = charge_penalty + REWARD_PER_MOTIF * n_motifs
+        reward: int = charge_penalty + REWARD_PER_MOTIF * motif_coeff
         return reward
 
     def _get_charge(self) -> int:
@@ -128,7 +128,7 @@ class Environment(gym.Env):
             ).item()
             self.motif: list[int] = self.rng.choice(  # type: ignore[no-redef]
                 AMINO_ACIDS_VALUES, replace=True, size=motif_length
-            )
+            ).tolist()
         return self.motif  # type: ignore[no-any-return]
 
     def _generate_sequence_length(self) -> int:
