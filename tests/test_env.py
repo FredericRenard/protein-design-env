@@ -21,6 +21,8 @@ class TestEnvironment:
 
     def test_env_step(self) -> None:
         """Mock an episode of length 4."""
+        self.env.motif = [AminoAcids.ARGININE, AminoAcids.LYSINE, AminoAcids.ARGININE]
+        self.env.state = self.env.motif.copy()
         self.env.reset()
         self.env.sequence_length = 3
 
@@ -124,7 +126,8 @@ class TestEnvironment:
 
     def test_get_reward(self) -> None:
         # The default motif has three positive charges.
-        self.env.state = DEFAULT_MOTIF.copy()
+        self.env.motif = [AminoAcids.ARGININE, AminoAcids.LYSINE, AminoAcids.ARGININE]
+        self.env.state = self.env.motif.copy()
         assert self.env._get_reward() == REWARD_PER_MOTIF + CHARGE_PENALTY
 
         # Make the sequence is now neutral in charge.

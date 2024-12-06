@@ -29,9 +29,9 @@ class Environment(gym.Env):
     The actions are adding an amino acid to the sequence.
     The reward is CHARGE_PENALTY if the charge is not neutral and REWARD_PER_MOTIF per motif
     present in the sequence.
-    The target motif to be present in the sequence is either ARGININE, LYSINE, ARGININE if the flag
+    The target motif to be present in the sequence is either DEFAULT_MOTIF if the flag
     "change_motif_at_each_episode" is False or a random motif of length between 2 and 4.
-    The length of the episode is either 15 if the flag
+    The length of the episode is either DEFAULT_SEQUENCE_LENGTH if the flag
     "change_sequence_length_at_each_episode" is False or a random number between 15 and 25
     otherwise.
     """

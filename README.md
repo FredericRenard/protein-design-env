@@ -10,13 +10,13 @@ In this environment, the agent acts by sequentially building a protein sequence.
 ### Key Features
 
 - **Dynamic Motifs**:
-    - A fixed target motif, such as `ARGININE, LYSINE, ARGININE`, can be used.
+    - A fixed target motif, such as `ARGININE, ISOLEUCINE`, can be used.
     - Alternatively, a random motif of length between 2 and 4 is generated for each episode.
 - **Flexible Sequence Lengths**:
     - Sequence lengths can be fixed at 15.
     - The lengths can vary randomly between 15 and 25 for each episode.
 - **Reward Structure**:
-    - **Motif Rewards**: Bonus for an occurrence of the target motif in the sequence. Bonus added if one of the amino acids of the target sequence is in the sequence.
+    - **Motif Rewards**: Bonus for an occurrence of the target motif in the sequence. Smaller bonus added for each amino acids of the target motif is in the sequence.
     - **Charge Penalty**: Penalty if the sequence is not neutral.
 
 ### Environment Mechanics
