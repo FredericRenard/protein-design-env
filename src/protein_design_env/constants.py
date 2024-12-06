@@ -1,7 +1,7 @@
 from protein_design_env.amino_acids import AminoAcids
 
 CHARGE_PENALTY = -1
-REWARD_PER_MOTIF = 1
+REWARD_PER_MOTIF = 5
 
 MIN_SEQUENCE_LENGTH = 15
 MAX_SEQUENCE_LENGTH = 25

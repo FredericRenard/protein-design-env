@@ -3,6 +3,7 @@ from typing import Any
 import gymnasium as gym
 import numpy as np
 from numpy._typing import NDArray
+from numpy.lib.stride_tricks import sliding_window_view
 
 from protein_design_env.amino_acids import AMINO_ACIDS_TO_CHARGES_DICT, AminoAcids
 from protein_design_env.constants import (
@@ -101,16 +102,25 @@ class Environment(gym.Env):
     def _get_reward(self) -> int:
         """Compute the reward of a sequence."""
         motif_coeff = 0.0
-        if self.motif in self.state:
-            motif_coeff = 1.0
-        else:
+        bonus_per_amino_acid_of_the_motif_in_state = 0.0
+        if len(self.state) >= len(self.motif):
+            possible_motifs = sliding_window_view(self.state, len(self.motif))
+            for motif in possible_motifs:
+                if all(motif == self.motif):
+                    motif_coeff += 1.0
+
+        if motif_coeff == 0.0:
             for amino_acid_id in self.motif:
-                if amino_acid_id in self.state and AMINO_ACIDS_TO_CHARGES_DICT[amino_acid_id] != 0:
-                    motif_coeff += 1 / len(self.motif)
+                if amino_acid_id in self.state:
+                    bonus_per_amino_acid_of_the_motif_in_state += 1 / len(self.motif)
 
         charge_penalty = CHARGE_PENALTY if self._get_charge() != 0 else 0
 
-        reward: int = charge_penalty + REWARD_PER_MOTIF * motif_coeff
+        reward: int = (
+            charge_penalty
+            + REWARD_PER_MOTIF * motif_coeff
+            + bonus_per_amino_acid_of_the_motif_in_state
+        )
         return reward
 
     def _get_charge(self) -> int:

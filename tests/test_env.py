@@ -140,7 +140,7 @@ class TestEnvironment:
 
         # Add another motif while staying neutral in charge.
         self.env.state.extend(self.env.state)
-        assert self.env._get_reward() == REWARD_PER_MOTIF
+        assert self.env._get_reward() == 2 * REWARD_PER_MOTIF
 
     def test_generate_sequence(self) -> None:
         assert self.env._generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH
@@ -220,3 +220,23 @@ class TestEnvironment:
         padded_motif = self.env._pad_motif()
         assert padded_motif.tolist() == expected_padded_motif
         assert len(padded_motif) == MAX_MOTIF_LENGTH
+
+    def test__motif_must_have_correct_order(
+        self,
+    ) -> None:
+        self.env.motif = [AminoAcids.ARGININE.value, AminoAcids.GLUTAMIC_ACID.value]
+        self.env.state = [
+            AminoAcids.GLUTAMIC_ACID.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.ALANINE.value,
+        ]
+
+        assert self.env._get_reward() == 1
+
+        self.env.state = [
+            AminoAcids.ALANINE.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.GLUTAMIC_ACID.value,
+        ]
+
+        assert self.env._get_reward() == REWARD_PER_MOTIF
