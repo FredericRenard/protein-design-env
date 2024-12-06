@@ -17,7 +17,7 @@ In this environment, the agent acts by sequentially building a protein sequence.
     - The lengths can vary randomly between 15 and 25 for each episode.
 - **Reward Structure**:
     - **Motif Rewards**: Bonus for an occurrence of the target motif in the sequence. Smaller bonus added for each amino acids of the target motif is in the sequence.
-    - **Charge Penalty**: Penalty if the sequence is not neutral.
+    - **Charge Penalty**: Penalty if the sequence is not neutral in the end of the episode.
 
 ### Environment Mechanics
 
