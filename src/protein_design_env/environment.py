@@ -107,12 +107,12 @@ class Environment(gym.Env):
             possible_motifs = sliding_window_view(self.state, len(self.motif))
             for motif in possible_motifs:
                 if all(motif == self.motif):
-                    motif_coeff += 1.0
+                    motif_coeff = 1.0
 
         if motif_coeff == 0.0:
             for amino_acid_id in self.motif:
                 if amino_acid_id in self.state:
-                    bonus_per_amino_acid_of_the_motif_in_state += 1 / len(self.motif)
+                    bonus_per_amino_acid_of_the_motif_in_state += 1 / (5 * len(self.motif))
 
         charge_penalty = CHARGE_PENALTY if self._get_charge() != 0 else 0
 
