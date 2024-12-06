@@ -60,7 +60,7 @@ class TestEnvironment:
             ]
         )
         np.testing.assert_array_equal(obs, expected_obs)
-        assert reward == CHARGE_PENALTY + 2 / (5 * 3)  # 2 amino acids out of 3 and not neutral.
+        assert reward == 2 / (5 * 3)  # 2 amino acids out of 3 and not neutral.
         assert not terminated
         assert not truncated
 
@@ -128,6 +128,8 @@ class TestEnvironment:
         # The default motif has three positive charges.
         self.env.motif = [AminoAcids.ARGININE, AminoAcids.LYSINE, AminoAcids.ARGININE]
         self.env.state = self.env.motif.copy()
+        self.env.sequence_length = len(self.env.state)
+
         assert self.env._get_reward() == REWARD_PER_MOTIF + CHARGE_PENALTY
 
         # Make the sequence is now neutral in charge.
@@ -229,6 +231,7 @@ class TestEnvironment:
         self,
     ) -> None:
         self.env.motif = [AminoAcids.ARGININE.value, AminoAcids.GLUTAMIC_ACID.value]
+        self.env.sequence_length = len(self.env.motif)
 
         # Check reward if the motif is not in the correct order and the charge is neutral.
         self.env.state = [
