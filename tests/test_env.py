@@ -21,6 +21,8 @@ class TestEnvironment:
 
     def test_env_step(self) -> None:
         """Mock an episode of length 4."""
+        self.env.motif = [AminoAcids.ARGININE, AminoAcids.LYSINE, AminoAcids.ARGININE]
+        self.env.state = self.env.motif.copy()
         self.env.reset()
         self.env.sequence_length = 3
 
@@ -58,7 +60,7 @@ class TestEnvironment:
             ]
         )
         np.testing.assert_array_equal(obs, expected_obs)
-        assert reward == CHARGE_PENALTY + 2 / 3
+        assert reward == CHARGE_PENALTY + 2 / (5 * 3)  # 2 amino acids out of 3 and not neutral.
         assert not terminated
         assert not truncated
 
@@ -77,7 +79,7 @@ class TestEnvironment:
             ]
         )
         np.testing.assert_array_equal(obs, expected_obs)
-        assert reward == CHARGE_PENALTY + 2 / 3
+        assert reward == CHARGE_PENALTY + 2 / (5 * 3)  # 2 amino acids out of 3 and not neutral.
         assert terminated
         assert truncated
 
@@ -124,7 +126,8 @@ class TestEnvironment:
 
     def test_get_reward(self) -> None:
         # The default motif has three positive charges.
-        self.env.state = DEFAULT_MOTIF.copy()
+        self.env.motif = [AminoAcids.ARGININE, AminoAcids.LYSINE, AminoAcids.ARGININE]
+        self.env.state = self.env.motif.copy()
         assert self.env._get_reward() == REWARD_PER_MOTIF + CHARGE_PENALTY
 
         # Make the sequence is now neutral in charge.
@@ -138,9 +141,10 @@ class TestEnvironment:
 
         assert self.env._get_reward() == REWARD_PER_MOTIF
 
-        # Add another motif while staying neutral in charge.
-        self.env.state.extend(self.env.state)
-        assert self.env._get_reward() == REWARD_PER_MOTIF
+        # Add an amino acids dimishing the charge. assert the reward decreases.
+        self.env.state.append(AminoAcids.LYSINE)
+
+        assert self.env._get_reward() == CHARGE_PENALTY + REWARD_PER_MOTIF
 
     def test_generate_sequence(self) -> None:
         assert self.env._generate_sequence_length() == DEFAULT_SEQUENCE_LENGTH
@@ -220,3 +224,46 @@ class TestEnvironment:
         padded_motif = self.env._pad_motif()
         assert padded_motif.tolist() == expected_padded_motif
         assert len(padded_motif) == MAX_MOTIF_LENGTH
+
+    def test__motif_must_have_correct_order(
+        self,
+    ) -> None:
+        self.env.motif = [AminoAcids.ARGININE.value, AminoAcids.GLUTAMIC_ACID.value]
+
+        # Check reward if the motif is not in the correct order and the charge is neutral.
+        self.env.state = [
+            AminoAcids.GLUTAMIC_ACID.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.ALANINE.value,
+        ]
+
+        assert self.env._get_reward() == 0.2
+
+        # Check reward if the motif is not in the correct order and the charge is not neutral.
+
+        self.env.state = [
+            AminoAcids.GLUTAMIC_ACID.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.LYSINE.value,
+        ]
+
+        assert self.env._get_reward() == 0.2 + CHARGE_PENALTY
+
+        # Check reward if the motif is in the correct order and the charge is neutral.
+        self.env.state = [
+            AminoAcids.ALANINE.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.GLUTAMIC_ACID.value,
+        ]
+
+        assert self.env._get_reward() == REWARD_PER_MOTIF
+
+        # Check reward if the motif is in the correct order and the charge is not neutral.
+
+        self.env.state = [
+            AminoAcids.LYSINE.value,
+            AminoAcids.ARGININE.value,
+            AminoAcids.GLUTAMIC_ACID.value,
+        ]
+
+        assert self.env._get_reward() == CHARGE_PENALTY + REWARD_PER_MOTIF
