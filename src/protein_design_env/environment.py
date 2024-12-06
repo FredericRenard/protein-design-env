@@ -114,7 +114,10 @@ class Environment(gym.Env):
                 if amino_acid_id in self.state:
                     bonus_per_amino_acid_of_the_motif_in_state += 1 / (5 * len(self.motif))
 
-        charge_penalty = CHARGE_PENALTY if self._get_charge() != 0 else 0
+        if self._get_charge() != 0 and len(self.state) == self.sequence_length:
+            charge_penalty = CHARGE_PENALTY if self._get_charge() != 0 else 0
+        else:
+            charge_penalty = 0
 
         reward: int = (
             charge_penalty
